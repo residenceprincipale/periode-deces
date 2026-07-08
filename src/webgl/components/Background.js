@@ -1,6 +1,7 @@
 import Experience from 'core/Experience.js'
 import { MeshBasicMaterial } from 'three'
 import Component from 'core/Component.js'
+import addObjectDebug from 'utils/addObjectDebug.js'
 
 export default class Background extends Component {
 	constructor() {
@@ -11,6 +12,7 @@ export default class Background extends Component {
 
 		this._createMaterial()
 		this._createMesh()
+		this._createDebug()
 	}
 
 	_createMaterial() {
@@ -24,14 +26,20 @@ export default class Background extends Component {
 		this.mesh.traverse((child) => {
 			if (child.isMesh) {
 				child.material = this._material
-				console.log(child.name)
+				// console.log(child.name)
 				if (child.name === 'Cork001') {
-					console.log(child.geometry.attributes)
+					// console.log(child.geometry.attributes)
 					child.geometry.attributes.uv = child.geometry.attributes.uv1.clone()
 				}
 			}
 		})
 		this.mesh.name = 'background'
 		this.add(this.mesh)
+	}
+
+	_createDebug() {
+		if (!this.debug.active) return
+
+		addObjectDebug(this.debug.ui, this, { title: 'Background Model', expanded: true })
 	}
 }
