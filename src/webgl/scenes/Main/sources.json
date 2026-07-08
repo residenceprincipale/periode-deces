@@ -71,5 +71,31 @@
 		"name": "headModel",
 		"type": "gltf",
 		"path": "models/head.glb"
+	},
+	{
+		"name": "wallFanModel",
+		"type": "gltf",
+		"path": "models/wall-fan.glb"
+	},
+	{
+		"name": "wallFanWallmountTexture",
+		"type": "texture",
+		"path": "textures/wallfan/wallmount.png",
+		"colorSpace": "srgb",
+		"flipY": false
+	},
+	{
+		"name": "wallFanMotorTexture",
+		"type": "texture",
+		"path": "textures/wallfan/motor.png",
+		"colorSpace": "srgb",
+		"flipY": false
+	},
+	{
+		"name": "wallFanPantieBillTexture",
+		"type": "texture",
+		"path": "textures/wallfan/pantie-bill-2.png",
+		"colorSpace": "srgb",
+		"flipY": false
 	}
 ]

@@ -2,6 +2,7 @@ import Experience from 'core/Experience.js'
 import Resources from 'core/Resources.js'
 import sources from './sources.json'
 import Fan from 'components/Fan.js'
+import WallFan from 'components/WallFan.js'
 import Computer from 'components/Computer/index.js'
 import Background from 'components/Background.js'
 import Phone from 'components/Phone.js'
@@ -78,6 +79,9 @@ export default class Main {
 		this.fan = new Fan()
 		this.scene.add(this.fan)
 		this.tasks.push(this.fan)
+
+		this.wallFan = new WallFan()
+		this.scene.add(this.wallFan)
 
 		this.computer = new Computer()
 		this.scene.add(this.computer)
@@ -158,6 +162,7 @@ export default class Main {
 
 	update() {
 		if (this.fan) this.fan.update()
+		if (this.wallFan) this.wallFan.update()
 		if (this.computer) this.computer.update()
 	}
 }
