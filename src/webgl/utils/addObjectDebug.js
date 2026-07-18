@@ -1,5 +1,6 @@
 import addMaterialDebug from 'utils/addMaterialDebug.js'
 import useTransformControls from 'utils/useTransformControls.js'
+import { applyObjectSettings } from 'utils/transformSettings.js'
 import { FolderApi } from '@tweakpane/core'
 import { Object3D } from 'three'
 import * as THREE from 'three'
@@ -26,6 +27,9 @@ const objectParams = {
  */
 export default function addObjectDebug(folder, object, options = {}) {
 	const title = options.title ? options.title : object.name ? object.name : object.uuid.slice(0, 8)
+	const settings = options.settings
+
+	if (settings) applyObjectSettings(object, settings)
 
 	const debugFolder = folder.addFolder({
 		title,
@@ -37,16 +41,20 @@ export default function addObjectDebug(folder, object, options = {}) {
 	meshKeys.forEach((key) => {
 		const keyValue = object[key]
 		const meshOption = objectParams[key]
-		if (keyValue !== undefined) {
-			debugFolder
-				.addBinding(object, key, {
-					...meshOption,
-					label: key,
-				})
-				.on('change', () => {
-					object.helper?.update()
-				})
-		}
+		if (keyValue === undefined) return
+
+		const bindingTarget = settings ?? object
+		if (settings && settings[key] === undefined) settings[key] = object[key]
+
+		debugFolder
+			.addBinding(bindingTarget, key, {
+				...meshOption,
+				label: key,
+			})
+			.on('change', () => {
+				if (settings) object[key] = settings[key]
+				object.helper?.update()
+			})
 	})
 
 	// display helper
@@ -69,7 +77,7 @@ export default function addObjectDebug(folder, object, options = {}) {
 			})
 	}
 
-	const controls = new useTransformControls(object, debugFolder)
+	const controls = new useTransformControls(object, debugFolder, undefined, settings)
 	if (object.target) {
 		const targetControls = new useTransformControls(object.target, debugFolder, 'transform control target')
 	}

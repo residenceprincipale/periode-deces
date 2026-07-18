@@ -51,7 +51,7 @@ export default class Head extends Component {
 						this.experience.subtitlesManager.next()
 					}
 				}
-				this.experience.axis.on('down', handleDown)
+				addEventListener('keydown', handleDown)
 
 				this.experience.subtitlesManager.on('finish', () => {
 					positionTl.kill()
@@ -59,7 +59,7 @@ export default class Head extends Component {
 					gsap.to(this.mesh.position, {
 						y: 2,
 					})
-					this.experience.axis.off('down', handleDown)
+					removeEventListener('keydown', handleDown)
 					this.trigger('task:complete')
 					this.experience.camera.resetAnimation()
 				})

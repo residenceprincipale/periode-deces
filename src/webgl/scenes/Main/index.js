@@ -14,7 +14,6 @@ export default class Main {
 	constructor() {
 		this.experience = new Experience()
 		this.scene = this.experience.scene
-		this.axis = this.experience.axis
 		this.scene.resources = new Resources(sources)
 
 		this.tasks = []
@@ -151,11 +150,12 @@ export default class Main {
 			duration: 0.25,
 			ease: 'sine.inOut',
 			onComplete: () => {
-				this.axis.on('down', (e) => {
-					if (e.key === 'a') {
+				const handleKeyDown = (event) => {
+					if (event.key === 'a') {
 						window.location.reload()
 					}
-				})
+				}
+				addEventListener('keydown', handleKeyDown)
 			},
 		})
 	}

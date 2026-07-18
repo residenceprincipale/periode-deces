@@ -7,8 +7,9 @@ import Experience from 'core/Experience.js'
 export default class Debug {
 	constructor() {
 		this.experience = new Experience()
-		this.axis = this.experience.axis
 		this.active = window.location.hash === '#debug'
+		this.files = []
+		this.server = { state: 'disconnected' }
 
 		if (this.active) {
 			this.ui = new Pane({ title: '⚙️ Debug' })
@@ -20,10 +21,12 @@ export default class Debug {
 			uiBindContainer.style.overflowY = 'auto'
 
 			this.setPlugins()
-			this.setImportExportButtons()
+			this.setSaveControls()
+			// this.setImportExportButtons()
 			this.setMoveEvent()
 			this.setResizeEvent()
 			this.setResetButton()
+			this.checkDebuggerServer()
 
 			this.setDebugManager()
 
@@ -32,6 +35,63 @@ export default class Debug {
 		} else {
 			sessionStorage.removeItem('debugParams')
 		}
+	}
+
+	registerFile(data, file) {
+		this.files.push({ data, file })
+	}
+
+	save() {
+		const serverIp = import.meta.env.DEV_SERVER_IP ?? 'localhost'
+		const serverPort = import.meta.env.DEBUGGER_SERVER_PORT ?? '3999'
+		const debuggerServerUrl = `http://${serverIp}:${serverPort}/save`
+
+		console.log(`Saving ${this.files.length} files...`)
+
+		return Promise.all(
+			this.files.map(({ data, file }) =>
+				fetch(debuggerServerUrl, {
+					method: 'POST',
+					mode: 'cors',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ data, file }),
+				}).then((response) => {
+					if (response.status === 200) console.log(`Successfully saved file: "${file}"`)
+				}),
+			),
+		)
+	}
+
+	checkDebuggerServer() {
+		if (import.meta.env.PROD) {
+			this.server.state = 'disconnected'
+			return
+		}
+
+		const serverIp = import.meta.env.DEV_SERVER_IP ?? 'localhost'
+		const serverPort = import.meta.env.DEBUGGER_SERVER_PORT ?? '3999'
+		const debuggerServerCheckUrl = `http://${serverIp}:${serverPort}/check`
+
+		const updateState = (response) => {
+			this.server.state = response?.ok ? 'connected' : 'disconnected'
+		}
+
+		fetch(debuggerServerCheckUrl, { method: 'GET' }).then(updateState, () => {
+			this.server.state = 'disconnected'
+		})
+
+		this._checkDebuggerServerInterval = setInterval(() => {
+			fetch(debuggerServerCheckUrl, { method: 'GET' }).then(updateState, () => {
+				this.server.state = 'disconnected'
+			})
+		}, 5000)
+	}
+
+	setSaveControls() {
+		this.ui.addBlade({ view: 'separator' })
+		this.ui.addButton({ title: '💾 Save' }).on('click', () => this.save())
+		this.ui.addBinding(this.server, 'state', { readonly: true, label: 'Server', interval: 100 })
+		this.ui.addBlade({ view: 'separator' })
 	}
 
 	setPlugins() {
@@ -223,7 +283,6 @@ export default class Debug {
 			SceneLog: true,
 			ResourceLog: true,
 			Stats: true,
-			Axis: true,
 			LoadingScreen: true,
 		}
 		this.debugParams = JSON.parse(sessionStorage.getItem('debugParams')) || this.debugParams
@@ -261,7 +320,7 @@ export default class Debug {
 						`📦 %c${object.name ? object.name : `unnamed ${object.type}`}%c added to the scene`,
 						'font-weight: bold; background-color: #ffffff20; padding: 0.1rem 0.3rem; border-radius: 0.3rem',
 						'font-weight: normal',
-						object
+						object,
 					)
 				}
 				return original.apply(this, arguments)

@@ -4,6 +4,7 @@ import { CameraHelper, PerspectiveCamera, Vector3, Group } from 'three'
 import InputManager from 'utils/InputManager.js'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
 import gsap from 'gsap'
+import settings from './Camera/settings.js'
 
 export default class Camera {
 	constructor() {
@@ -18,11 +19,11 @@ export default class Camera {
 		 * @type {{ fov: number, frustum: { min: number, max: number }, position: Vector3, target: Vector3, currentCamera: 'sceneCamera' | 'controlsCamera' | 'fpsCamera' }}
 		 */
 		this.options = {
-			fov: 33,
-			frustum: { min: 1, max: 100 },
-			position: new Vector3(0, 2.6, 4),
-			target: new Vector3(0, 1.9, 0),
-			currentCamera: 'sceneCamera',
+			fov: settings.fov,
+			frustum: settings.frustum,
+			position: new Vector3(settings.position.x, settings.position.y, settings.position.z),
+			target: new Vector3(settings.target.x, settings.target.y, settings.target.z),
+			currentCamera: settings.currentCamera,
 		}
 
 		this.setInstance()
@@ -200,20 +201,24 @@ export default class Camera {
 	}
 
 	setDebug() {
+		this.debug.registerFile(settings, settings.file)
+
 		const debugFolder = this.debug.ui.addFolder({
 			title: 'Camera',
 			expanded: false,
 		})
 
-		debugFolder.addBinding(this.options, 'fov', { min: 0, max: 180, step: 1 }).on('change', () => {
-			this.sceneCamera.fov = this.options.fov
+		debugFolder.addBinding(settings, 'fov', { min: 0, max: 180, step: 1 }).on('change', () => {
+			this.options.fov = settings.fov
+			this.sceneCamera.fov = settings.fov
 			this.sceneCamera.updateProjectionMatrix()
 			if (this.sceneCamera.cameraHelper) this.sceneCamera.cameraHelper.update()
 		})
 
-		debugFolder.addBinding(this.options, 'frustum', { min: 0.1, max: 100, step: 0.1 }).on('change', () => {
-			this.sceneCamera.near = this.options.frustum.min
-			this.sceneCamera.far = this.options.frustum.max
+		debugFolder.addBinding(settings, 'frustum', { min: 0.1, max: 100, step: 0.1 }).on('change', () => {
+			this.options.frustum = settings.frustum
+			this.sceneCamera.near = settings.frustum.min
+			this.sceneCamera.far = settings.frustum.max
 			this.sceneCamera.updateProjectionMatrix()
 			if (this.sceneCamera.cameraHelper) this.sceneCamera.cameraHelper.update()
 		})

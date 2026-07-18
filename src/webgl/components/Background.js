@@ -2,6 +2,8 @@ import Experience from 'core/Experience.js'
 import { MeshBasicMaterial } from 'three'
 import Component from 'core/Component.js'
 import addObjectDebug from 'utils/addObjectDebug.js'
+import { applyObjectSettings } from 'utils/transformSettings.js'
+import settings from './Background/settings.js'
 
 export default class Background extends Component {
 	constructor() {
@@ -12,6 +14,7 @@ export default class Background extends Component {
 
 		this._createMaterial()
 		this._createMesh()
+		this._applyTransform()
 		this._createDebug()
 	}
 
@@ -26,9 +29,7 @@ export default class Background extends Component {
 		this.mesh.traverse((child) => {
 			if (child.isMesh) {
 				child.material = this._material
-				// console.log(child.name)
 				if (child.name === 'Cork001') {
-					// console.log(child.geometry.attributes)
 					child.geometry.attributes.uv = child.geometry.attributes.uv1.clone()
 				}
 			}
@@ -37,9 +38,14 @@ export default class Background extends Component {
 		this.add(this.mesh)
 	}
 
+	_applyTransform() {
+		applyObjectSettings(this, settings)
+	}
+
 	_createDebug() {
 		if (!this.debug.active) return
 
-		addObjectDebug(this.debug.ui, this, { title: 'Background Model', expanded: true })
+		this.debug.registerFile(settings, settings.file)
+		addObjectDebug(this.debug.ui, this, { title: 'Background Model', expanded: true, settings })
 	}
 }

@@ -11,7 +11,6 @@ export default class Graph extends EventEmitter {
 		this.debug = this.experience.debug
 		this.camera = this.experience.camera
 		this.resources = this.scene.resources
-		this.axis = this.experience.axis
 
 		this.score = 10
 
@@ -318,21 +317,6 @@ export default class Graph extends EventEmitter {
 			this._joystickTop = false
 		} else if (e.key === 'ArrowDown') {
 			this._joystickBottom = false
-		}
-	}
-
-	_updateJoystick(e) {
-		if (!this.isGameActive) return
-
-		if (e.position.y < -0.4) {
-			this._joystickBottom = true
-			this._joystickTop = false
-		} else if (e.position.y > 0.4) {
-			this._joystickBottom = false
-			this._joystickTop = true
-		} else {
-			this._joystickBottom = false
-			this._joystickTop = false
 		}
 	}
 }

@@ -1,15 +1,18 @@
 import Experience from 'core/Experience.js'
 import { TransformControls } from 'three/addons/controls/TransformControls.js'
+import { applyTransformSettings, syncTransformSettings } from 'utils/transformSettings.js'
 import { FolderApi } from '@tweakpane/core'
 import { Object3D } from 'three'
 
 /**
  * @param {Object3D} object - Object to attach transform controls to
  * @param {FolderApi} [debugFolder] - Tweakpane folder
+ * @param {string} [name] - Label for the transform control toggle
+ * @param {object} [settings] - Settings object to sync with for save-to-disk
  * @returns {TransformControls} - Transform controls instance
  */
 export default class useTransformControls {
-	constructor(object, debugFolder, name) {
+	constructor(object, debugFolder, name, settings) {
 		if (!object) throw new Error('useTransformControls: object is undefined')
 
 		this.experience = new Experience()
@@ -22,6 +25,7 @@ export default class useTransformControls {
 			object,
 			debugFolder,
 			name,
+			settings,
 		}
 
 		this.setInstance()
@@ -88,19 +92,31 @@ export default class useTransformControls {
 		 * Position, rotation, scale
 		 */
 
-		const positionBinding = this.options.debugFolder.addBinding(this.options.object, 'position', {
+		const { object, settings } = this.options
+		const transformTarget = settings ?? object
+
+		const positionBinding = this.options.debugFolder.addBinding(transformTarget, 'position', {
 			label: 'position',
 		})
 
-		const rotationBinding = this.options.debugFolder.addBinding(this.options.object, 'rotation', {
+		const rotationBinding = this.options.debugFolder.addBinding(transformTarget, 'rotation', {
 			label: 'rotation',
 		})
 
-		const scaleBinding = this.options.debugFolder.addBinding(this.options.object, 'scale', {
+		const scaleBinding = this.options.debugFolder.addBinding(transformTarget, 'scale', {
 			label: 'scale',
 		})
 
+		if (settings) {
+			const applyFromSettings = () => applyTransformSettings(object, settings)
+
+			positionBinding.on('change', applyFromSettings)
+			rotationBinding.on('change', applyFromSettings)
+			scaleBinding.on('change', applyFromSettings)
+		}
+
 		this.instance.addEventListener('change', () => {
+			if (settings) syncTransformSettings(object, settings)
 			positionBinding.refresh()
 			rotationBinding.refresh()
 			scaleBinding.refresh()

@@ -6,7 +6,6 @@ import Renderer from './Renderer.js'
 import SceneManager from 'core/SceneManager.js'
 import { Mesh, Scene } from 'three'
 import InteractionManager from 'core/InteractionManager.js'
-import AxisManager from './AxisManager.js'
 import { SubtitlesManager } from '@/webgl/core/SubtitlesManager.js'
 
 let instance = null
@@ -33,7 +32,6 @@ export default class Experience {
 		this.sizes = new Sizes()
 		this.camera = new Camera()
 		this.interactionManager = new InteractionManager(this.camera.instance)
-		this.axis = new AxisManager()
 		this.activeScene = new SceneManager()
 		this.renderer = new Renderer()
 		this.subtitlesManager = new SubtitlesManager()
@@ -59,7 +57,6 @@ export default class Experience {
 		this.renderer.update()
 		this.debug.update()
 		this.interactionManager.update()
-		this.axis.update()
 	}
 
 	destroy() {
@@ -88,6 +85,5 @@ export default class Experience {
 		this.renderer.instance.dispose()
 
 		if (this.debug.active) this.debug.ui.destroy()
-		this.axis.destroy()
 	}
 }

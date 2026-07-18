@@ -2,7 +2,9 @@ import Experience from 'core/Experience.js'
 import { DoubleSide, MeshBasicMaterial, ShaderMaterial } from 'three'
 import Component from 'core/Component.js'
 import addObjectDebug from 'utils/addObjectDebug.js'
+import { applyObjectSettings } from 'utils/transformSettings.js'
 import { gsap } from 'gsap'
+import settings from './WallFan/settings.js'
 import windVertexShader from './WallFan/windVertex.vert'
 import windFragmentShader from './WallFan/windFragment.frag'
 
@@ -12,32 +14,6 @@ const TEXTURE_MAP = {
 	bill: 'wallFanPantieBillTexture',
 	'fan-pale': 'wallFanMotorTexture',
 	pantie: 'wallFanPantieBillTexture',
-}
-
-const TRANSFORM = {
-	position: { x: -4.4, y: 3.5, z: -9.97 },
-	rotation: { x: 0, y: 1.53, z: 0 },
-	scale: { x: 1, y: 1, z: 1 },
-}
-
-const ANIMATION = {
-	fanPaleDuration: 0.1,
-	fanSwingAngle: 0.4,
-	fanSwingDuration: 3,
-}
-
-const WIND = {
-	amplitude: 0.22,
-	frequency: 21,
-	speed: 13,
-	bill: {
-		phase: 0,
-		timeOffset: 0,
-	},
-	pantie: {
-		phase: 2.8,
-		timeOffset: 0.75,
-	},
 }
 
 export default class WallFan extends Component {
@@ -74,9 +50,9 @@ export default class WallFan extends Component {
 				uTexture: { value: windTexture },
 				uTime: { value: 0 },
 				uTimeOffset: { value: 0 },
-				uAmplitude: { value: WIND.amplitude },
-				uFrequency: { value: WIND.frequency },
-				uSpeed: { value: WIND.speed },
+				uAmplitude: { value: settings.wind.amplitude },
+				uFrequency: { value: settings.wind.frequency },
+				uSpeed: { value: settings.wind.speed },
 				uPhase: { value: 0 },
 			},
 			side: DoubleSide,
@@ -92,7 +68,7 @@ export default class WallFan extends Component {
 			if (!child.isMesh) return
 
 			if (child.name === 'bill' || child.name === 'pantie') {
-				const windConfig = WIND[child.name]
+				const windConfig = settings.wind[child.name]
 				child.material = this._windMaterial.clone()
 				child.material.uniforms.uPhase.value = windConfig.phase
 				child.material.uniforms.uTimeOffset.value = windConfig.timeOffset
@@ -130,25 +106,23 @@ export default class WallFan extends Component {
 	}
 
 	_applyTransform() {
-		this.position.set(TRANSFORM.position.x, TRANSFORM.position.y, TRANSFORM.position.z)
-		this.rotation.set(TRANSFORM.rotation.x, TRANSFORM.rotation.y, TRANSFORM.rotation.z)
-		this.scale.set(TRANSFORM.scale.x, TRANSFORM.scale.y, TRANSFORM.scale.z)
+		applyObjectSettings(this, settings)
 	}
 
 	_createAnimations() {
 		this._fanPaleTl = gsap.to(this.fanPale.rotation, {
 			z: Math.PI * 2,
-			duration: ANIMATION.fanPaleDuration,
+			duration: settings.animation.fanPaleDuration,
 			repeat: -1,
 			ease: 'none',
 		})
 
 		this._fanSwingTl = gsap.fromTo(
 			this.fanPivot.rotation,
-			{ y: -ANIMATION.fanSwingAngle },
+			{ y: -settings.animation.fanSwingAngle },
 			{
-				y: ANIMATION.fanSwingAngle,
-				duration: ANIMATION.fanSwingDuration,
+				y: settings.animation.fanSwingAngle,
+				duration: settings.animation.fanSwingDuration,
 				repeat: -1,
 				yoyo: true,
 				ease: 'sine.inOut',
@@ -173,6 +147,7 @@ export default class WallFan extends Component {
 	_createDebug() {
 		if (!this.debug.active) return
 
-		addObjectDebug(this.debug.ui, this, { title: 'Wall Fan', expanded: true })
+		this.debug.registerFile(settings, settings.file)
+		addObjectDebug(this.debug.ui, this, { title: 'Wall Fan', expanded: true, settings })
 	}
 }
