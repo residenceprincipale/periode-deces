@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { MeshBasicMaterial, Vector2 } from 'three'
 import Component from 'core/Component.js'
 import Bubble from './Bubble'
+import { isContinueKey } from '@/webgl/utils/keyboardControls.js'
 
 export default class Phone extends Component {
 	constructor() {
@@ -97,7 +98,7 @@ export default class Phone extends Component {
 		this._bubble.display()
 		this.experience.subtitlesManager.playSubtitle('client')
 		const handleDown = (event) => {
-			if (event.key === 'a') {
+			if (isContinueKey(event)) {
 				this.experience.subtitlesManager.next()
 			}
 		}

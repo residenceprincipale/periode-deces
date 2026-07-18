@@ -9,6 +9,7 @@ import Phone from 'components/Phone.js'
 import Desk from 'components/Desk.js'
 import Head from 'components/Head.js'
 import gsap from 'gsap'
+import { isContinueKey } from '@/webgl/utils/keyboardControls.js'
 
 export default class Main {
 	constructor() {
@@ -29,11 +30,11 @@ export default class Main {
 	_start() {
 		this._startMenuElement = document.getElementById('start-menu')
 		this._dayPanelElement = document.getElementById('day-panel')
-		this._gameOverElement = document.getElementById('game-over')
+		this._gameOverElement = document.getElementById('gameover')
 
 		this._createSceneComponents()
-		this._randomTasks()
 		this._createScore()
+		this._bindMenuControls()
 	}
 
 	_createScore() {
@@ -121,6 +122,17 @@ export default class Main {
 		setTimeout(repeat, timeout)
 	}
 
+	_bindMenuControls() {
+		const handleStart = (event) => {
+			if (!isContinueKey(event) || this._isGameStarted) return
+			this._isGameStarted = true
+			removeEventListener('keydown', handleStart)
+			this._playStartAnimation()
+		}
+
+		addEventListener('keydown', handleStart)
+	}
+
 	_playStartAnimation() {
 		const startTimeline = gsap.timeline()
 
@@ -151,7 +163,7 @@ export default class Main {
 			ease: 'sine.inOut',
 			onComplete: () => {
 				const handleKeyDown = (event) => {
-					if (event.key === 'a') {
+					if (isContinueKey(event)) {
 						window.location.reload()
 					}
 				}

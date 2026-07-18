@@ -170,7 +170,9 @@ export default class Computer extends Component {
 		return screenPoint
 	}
 
-	update() {}
+	update() {
+		this._graphActivity.update()
+	}
 
 	_createDebug() {
 		if (this.debug.active) {
@@ -180,5 +182,6 @@ export default class Computer extends Component {
 
 	resize() {
 		this.css3dRenderer.setSize(this.experience.sizes.width, this.experience.sizes.height)
+		this._graphActivity.resize()
 	}
 }

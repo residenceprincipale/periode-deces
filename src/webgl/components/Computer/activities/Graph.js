@@ -21,14 +21,13 @@ export default class Graph extends EventEmitter {
 		this._scoreNumber = this._element.querySelector('.number')
 		this._completedElement = this._element.querySelector('.completed')
 
-		this.context = this._createContext()
+		this._setupCanvas()
 
 		// Graph data and settings
 		this.originalGraph = this._generateRandomGraph() // Random trading graph (hard coded for now)
-		this.userScoreGraph = [] // The user's graph based on key inputs
 		this.userGraph = [] // The user's graph based on key inputs
 		this.currentX = 0 // Track the current position in X
-		this.currentY = this._graphCanvas.height / 2 // Start drawing in the middle
+		this.currentY = this._displayHeight / 2 // Start drawing in the middle
 		this.graphScore = 0 // score is not an actual score for now its just percentages
 		this.drawingSpeed = 2 // Constant horizontal drawing speed
 		this.isGameActive = false
@@ -55,7 +54,6 @@ export default class Graph extends EventEmitter {
 		})
 
 		this.isGameActive = true
-		this._draw()
 	}
 
 	end() {
@@ -87,7 +85,7 @@ export default class Graph extends EventEmitter {
 		this.isGameActive = false
 		this.userGraph = []
 		this.currentX = 0
-		this.currentY = this._graphCanvas.height / 2
+		this.currentY = this._displayHeight / 2
 		this.graphScore = 0
 
 		this._joystickInterval && clearInterval(this._joystickInterval)
@@ -99,25 +97,30 @@ export default class Graph extends EventEmitter {
 		removeEventListener('keyup', this._handleKeyUp)
 	}
 
-	_createContext() {
-		const context = this._graphCanvas.getContext('2d')
-
-		// Get the CSS width and height
+	_setupCanvas() {
 		this._displayWidth = this._graphCanvas.clientWidth
 		this._displayHeight = this._graphCanvas.clientHeight
+		this._pixelRatio = Math.min(window.devicePixelRatio, 2)
 
-		// Get the device pixel ratio (e.g., 2 for Retina screens)
-		const pixelRatio = 2
-		// const pixelRatio = window.devicePixelRatio || 1;
+		this._graphCanvas.width = this._displayWidth * this._pixelRatio
+		this._graphCanvas.height = this._displayHeight * this._pixelRatio
 
-		// Set the canvas width and height based on the pixel ratio
-		this._graphCanvas.width = this._displayWidth * pixelRatio
-		this._graphCanvas.height = this._displayHeight * pixelRatio
+		this.context = this._graphCanvas.getContext('2d')
+		this.context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0)
+	}
 
-		// Scale the context to match the pixel ratio
-		context.scale(pixelRatio, pixelRatio)
+	resize() {
+		this._setupCanvas()
+		this.originalGraph = this._generateRandomGraph()
 
-		return context
+		if (!this.isGameActive) {
+			this.currentY = this._displayHeight / 2
+		}
+	}
+
+	update() {
+		if (!this.isGameActive) return
+		this._draw()
 	}
 
 	// Generate a random trading graph to follow
@@ -177,39 +180,31 @@ export default class Graph extends EventEmitter {
 		this.context.stroke()
 	}
 
-	// Draw both the original graph and the user's graph
 	_draw() {
-		if (!this.isGameActive) return
+		this.context.fillStyle = '#FFFFFF'
+		this.context.fillRect(0, 0, this._displayWidth, this._displayHeight)
 
-		this.context.fillStyle = '#FFFFFF' // White background
-		this.context.fillRect(0, 0, this._graphCanvas.width, this._graphCanvas.height) // Clear canvas
-
-		this._drawGrid() // Draw background grid
-		this._drawOriginalGraph() // Draw the reference graph
-		this._drawUserGraph() // Draw the user's graph
-
-		this._calculateScore() // Calculate score based on user's drawing
-
-		requestAnimationFrame(() => this._draw()) // Keep redrawing the canvas
+		this._drawGrid()
+		this._drawOriginalGraph()
+		this._drawUserGraph()
+		this._calculateScore()
 	}
 
 	_drawGrid() {
-		// Draw horizontal lines
-		for (let y = 0; y <= this._graphCanvas.height; y += 5) {
+		for (let y = 0; y <= this._displayHeight; y += 5) {
 			this.context.beginPath()
 			this.context.moveTo(0, y)
-			this.context.lineTo(this._graphCanvas.width, y)
-			this.context.strokeStyle = '#EEEEEE' // Light gray color for grid lines
-			this.context.lineWidth = 1 // Slightly thicker line for better visibility
+			this.context.lineTo(this._displayWidth, y)
+			this.context.strokeStyle = '#EEEEEE'
+			this.context.lineWidth = 1
 			this.context.stroke()
 		}
 
-		// Draw vertical lines
-		for (let x = 0; x <= this._graphCanvas.width; x += 10) {
+		for (let x = 0; x <= this._displayWidth; x += 10) {
 			this.context.beginPath()
 			this.context.moveTo(x, 0)
-			this.context.lineTo(x, this._graphCanvas.height)
-			this.context.strokeStyle = '#EEEEEE' // Light gray color for grid lines
+			this.context.lineTo(x, this._displayHeight)
+			this.context.strokeStyle = '#EEEEEE'
 			this.context.stroke()
 		}
 	}
@@ -287,7 +282,7 @@ export default class Graph extends EventEmitter {
 				this.currentX += this.drawingSpeed // Move horizontally at a constant speed
 				this.userGraph.push({ x: this.currentX, y: this.currentY })
 			} else if (this._joystickTop) {
-				this.currentY = Math.min(this._graphCanvas.height, this.currentY - step) // Move down
+				this.currentY = Math.min(this._displayHeight, this.currentY - step)
 				if (this.graphScore < 0) this.graphScore = 0
 				this.graphScore += 1
 				this._calculateScore() // Update score for ArrowUp

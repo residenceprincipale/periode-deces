@@ -2,6 +2,7 @@ import Experience from 'core/Experience.js'
 import gsap from 'gsap'
 import EventEmitter from 'core/EventEmitter.js'
 import Component from 'core/Component.js'
+import { isContinueKey } from '@/webgl/utils/keyboardControls.js'
 
 export default class Head extends Component {
 	constructor() {
@@ -47,7 +48,7 @@ export default class Head extends Component {
 				})
 
 				const handleDown = (event) => {
-					if (event.key === 'a') {
+					if (isContinueKey(event)) {
 						this.experience.subtitlesManager.next()
 					}
 				}

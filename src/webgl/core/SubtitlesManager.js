@@ -2,6 +2,7 @@ import subtitles from '@/subtitles.js'
 import { gsap } from 'gsap'
 import Experience from 'core/Experience.js'
 import EventEmitter from 'core/EventEmitter.js'
+import { isContinueKey, matchesKey } from '@/webgl/utils/keyboardControls.js'
 
 export class SubtitlesManager extends EventEmitter {
 	constructor() {
@@ -77,7 +78,7 @@ export class SubtitlesManager extends EventEmitter {
 		const children = Array.from(this._qteElement.children)
 		children.sort(() => Math.random() - 0.5)
 		children.forEach((child) => {
-			child.style.opacity = 1
+			child.classList.remove('key-hint--pressed')
 			this._qteElement.appendChild(child)
 		})
 		let index = 0
@@ -89,20 +90,18 @@ export class SubtitlesManager extends EventEmitter {
 		}
 
 		const handleDown = (event) => {
-			if (event.key === 'a') return
-			const firstChild = this._qteElement.children[index]
-			const keyMap = {
-				x: 'x',
-				i: 'i',
-				s: 's',
-			}
+			if (isContinueKey(event)) return
 
-			if (keyMap[event.key] && firstChild.alt === keyMap[event.key]) {
-				firstChild.style.opacity = 0.5
+			const firstChild = this._qteElement.children[index]
+			const expectedKey = firstChild.dataset.key
+
+			if (expectedKey && matchesKey(event, expectedKey)) {
+				firstChild.classList.add('key-hint--pressed')
 				index++
-			} else {
+			} else if (expectedKey) {
 				this.playSubtitle(this._currentSubtitle.error)
 				endQte()
+				return
 			}
 
 			if (index === children.length) {

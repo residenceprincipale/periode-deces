@@ -7,9 +7,23 @@ html,
 body {
 	overflow: hidden;
 	color: white;
-	font-family: VT323, serif;
+	font-family: system-ui, -apple-system, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+.pixelated {
+	font-family: VT323, monospace;
 	-webkit-font-smoothing: none;
 	text-rendering: optimizeSpeed;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+.pixelated img,
+.pixelated canvas {
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
 }
 
 #webgl {
@@ -19,7 +33,6 @@ body {
 
 	width: 100% !important;
 	height: 100% !important;
-	image-rendering: pixelated;
 }
 
 .computer-screen {
@@ -28,11 +41,10 @@ body {
 	height: 83px;
 	background-color: rgb(34, 135, 174);
 	color: black;
+	font-family: system-ui, -apple-system, sans-serif;
 	font-size: 10px;
 	/* line-height: 10px; */
 	overflow: hidden;
-	image-rendering: pixelated;
-	image-rendering: crisp-edges;
 	transform: scale(2);
 	/* filter: blur(1px); */
 }
