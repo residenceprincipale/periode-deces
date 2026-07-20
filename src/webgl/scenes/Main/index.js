@@ -90,6 +90,17 @@ export default class Main {
 		this.phone = new Phone()
 		this.scene.add(this.phone)
 		this.tasks.push(this.phone)
+
+		if (this.experience.debug.active) this._setDebugEvents()
+	}
+
+	_setDebugEvents() {
+		this.experience.debug.setEventsFolder([
+			{ title: 'Fan', start: () => this.fan.showTask() },
+			{ title: 'Graph', start: () => this.computer.playTask() },
+			{ title: 'Phone', start: () => this.phone.playTask() },
+			{ title: 'Head', start: () => this.head.playTask() },
+		])
 	}
 
 	_randomTasks(timeout = 5000) {
@@ -99,6 +110,8 @@ export default class Main {
 
 			if (randomTask.isPlaying || randomTask.isShowed) return
 			randomTask.showTask()
+
+			console.log('show task', randomTask)
 		}, timeout)
 	}
 
@@ -150,7 +163,7 @@ export default class Main {
 					// this._randomFocusTasks()
 				},
 			},
-			1
+			1,
 		)
 	}
 

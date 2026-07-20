@@ -20,6 +20,13 @@ export default class Main {
 			// this.environment = new Environment()
 			this.computer = new Computer()
 			this.phone = new Phone()
+
+			if (this.experience.debug.active) {
+				this.experience.debug.setEventsFolder([
+					{ title: 'Graph', start: () => this.computer.playTask() },
+					{ title: 'Phone', start: () => this.phone.playTask() },
+				])
+			}
 		})
 	}
 

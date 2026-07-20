@@ -1,10 +1,12 @@
 import addObjectDebug from '@/webgl/utils/addObjectDebug'
 import Component from 'core/Component.js'
 import Experience from 'core/Experience.js'
-import { gsap } from 'gsap'
-import { BoxGeometry, Mesh, MeshBasicMaterial, Scene, Vector3 } from 'three'
-import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
+import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three'
+import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import Graph from './activities/Graph'
+
+// Native screen is 300×166 (2× the old 150×83 layout). Halve CSS3D scale to keep the same world size.
+const SCREEN_CSS3D_SCALE = 0.00525
 
 export default class Computer extends Component {
 	constructor() {
@@ -97,14 +99,6 @@ export default class Computer extends Component {
 	}
 
 	_createMaterial() {
-		// this.material = new ShaderMaterial({
-		// 	fragmentShader,
-		// 	vertexShader,
-		// 	uniforms: {
-		// 		uOpacity: { value: 1 },
-		// 	},
-		// })
-
 		const texture = this.resources.items.bakeTexture
 		texture.channel = 1
 
@@ -129,24 +123,30 @@ export default class Computer extends Component {
 		return this.mesh
 	}
 
-	setScreenElement() {
-		const screen = document.querySelector('.computer-screen')
+	_addScreenLayer(element, { interactive = false } = {}) {
+		if (interactive) {
+			element.addEventListener('mouseenter', this._handleMouseEnter)
+			element.addEventListener('mouseleave', this._handleMouseLeave)
+			element.addEventListener('click', this._handleMouseClick)
+		}
 
-		//handle mouse events
-		screen.addEventListener('mouseenter', this._handleMouseEnter)
-		screen.addEventListener('mouseleave', this._handleMouseLeave)
-		screen.addEventListener('click', this._handleMouseClick)
-
-		const cssObject = new CSS3DObject(screen)
-
-		// Position it on the cube (modify this based on your cube's dimensions and face positioning)
-		cssObject.position.copy(this.screenPoint.position) // Example, adjust to position on the correct face
-		cssObject.rotation.copy(this.screenPoint.rotation) // Example, adjust to position on the correct face
-		cssObject.scale.set(0.0105, 0.0105, 0.0105) // Adjust the rotation as needed
-
+		const cssObject = new CSS3DObject(element)
+		cssObject.position.copy(this.screenPoint.position)
+		cssObject.rotation.copy(this.screenPoint.rotation)
+		cssObject.scale.set(SCREEN_CSS3D_SCALE, SCREEN_CSS3D_SCALE, SCREEN_CSS3D_SCALE)
 		this.css3dScene.add(cssObject)
 
 		return cssObject
+	}
+
+	setScreenElement() {
+		const wallpaper = document.querySelector('.computer-screen-wallpaper')
+		const ui = document.querySelector('.computer-screen-ui')
+
+		this.wallpaperElement = this._addScreenLayer(wallpaper)
+		this.uiElement = this._addScreenLayer(ui, { interactive: true })
+
+		return this.uiElement
 	}
 
 	setScreenBounds() {
@@ -163,7 +163,6 @@ export default class Computer extends Component {
 	setScreenPoint() {
 		const screenPoint = new Mesh(new BoxGeometry(0.1, 0.1, 0.1), new MeshBasicMaterial({ color: 0xff0000 }))
 		screenPoint.position.set(0.06, 2.17, -0.47)
-		// screenPoint.rotation.y = Math.PI;
 
 		this.scene.add(screenPoint)
 

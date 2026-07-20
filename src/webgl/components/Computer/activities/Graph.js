@@ -3,6 +3,23 @@ import { gsap } from 'gsap'
 import Experience from 'core/Experience.js'
 import EventEmitter from '@/webgl/core/EventEmitter'
 
+const GRAPH_REFERENCE = { width: 85, height: 40 }
+const GRAPH_TEMPLATE = [
+	{ x: 0, y: 35 },
+	{ x: 10, y: 20 },
+	{ x: 15, y: 25 },
+	{ x: 20, y: 30 },
+	{ x: 30, y: 20 },
+	{ x: 35, y: 5 },
+	{ x: 40, y: 25 },
+	{ x: 50, y: 10 },
+	{ x: 55, y: 30 },
+	{ x: 60, y: 20 },
+	{ x: 70, y: 10 },
+	{ x: 75, y: 30 },
+	{ x: 85, y: 0 },
+]
+
 export default class Graph extends EventEmitter {
 	constructor() {
 		super()
@@ -27,31 +44,26 @@ export default class Graph extends EventEmitter {
 		this.originalGraph = this._generateRandomGraph() // Random trading graph (hard coded for now)
 		this.userGraph = [] // The user's graph based on key inputs
 		this.currentX = 0 // Track the current position in X
-		this.currentY = this._displayHeight / 2 // Start drawing in the middle
+		this.currentY = 0
 		this.graphScore = 0 // score is not an actual score for now its just percentages
-		this.drawingSpeed = 2 // Constant horizontal drawing speed
+		this._syncGameplayScale()
+		this._resetUserGraphPosition()
 		this.isGameActive = false
 	}
 
 	showTask() {
-		gsap.to(this._notification, {
-			duration: 0.2,
-			scale: 1,
-		})
+		this._notification.classList.add('is-visible')
 	}
 
 	playTask(side) {
 		this._side = side
 		this._bindEvents()
-		gsap.to(this._notification, {
-			duration: 0.01,
-			scale: 0,
-		})
 
-		gsap.to(this._activity, {
-			duration: 0.2,
-			scale: 1,
-		})
+		this._notification.classList.remove('is-visible')
+		this._activity.classList.add('is-visible')
+		this._setupCanvas()
+		this.originalGraph = this._generateRandomGraph()
+		this._resetUserGraphPosition({ seedGraph: true })
 
 		this.isGameActive = true
 	}
@@ -71,22 +83,14 @@ export default class Graph extends EventEmitter {
 	}
 
 	hide() {
-		gsap.to(this._activity, {
-			scale: 0,
-			duration: 0.3,
-		})
-
-		gsap.to(this._completedElement, {
-			opacity: 0,
-		})
+		this._activity.classList.remove('is-visible')
+		gsap.set(this._completedElement, { autoAlpha: 0 })
 	}
 
 	reset() {
 		this.isGameActive = false
-		this.userGraph = []
-		this.currentX = 0
-		this.currentY = this._displayHeight / 2
 		this.graphScore = 0
+		this._resetUserGraphPosition()
 
 		this._joystickInterval && clearInterval(this._joystickInterval)
 		this._joystickInterval = null
@@ -95,18 +99,60 @@ export default class Graph extends EventEmitter {
 
 		removeEventListener('keydown', this._handleKeyDown)
 		removeEventListener('keyup', this._handleKeyUp)
+
+		gsap.killTweensOf(this._completedElement)
+		this._notification.classList.remove('is-visible')
+		this._activity.classList.remove('is-visible')
+		gsap.set(this._completedElement, { autoAlpha: 0 })
 	}
 
 	_setupCanvas() {
 		this._displayWidth = this._graphCanvas.clientWidth
 		this._displayHeight = this._graphCanvas.clientHeight
-		this._pixelRatio = Math.min(window.devicePixelRatio, 2)
+
+		if (!this._displayWidth || !this._displayHeight) return
+
+		this._pixelRatio = 1
 
 		this._graphCanvas.width = this._displayWidth * this._pixelRatio
 		this._graphCanvas.height = this._displayHeight * this._pixelRatio
 
 		this.context = this._graphCanvas.getContext('2d')
 		this.context.setTransform(this._pixelRatio, 0, 0, this._pixelRatio, 0, 0)
+		this.context.imageSmoothingEnabled = false
+
+		this._syncGameplayScale()
+	}
+
+	_syncGameplayScale() {
+		if (!this._displayWidth || !this._displayHeight) return
+
+		const scaleX = this._displayWidth / GRAPH_REFERENCE.width
+		const scaleY = this._displayHeight / GRAPH_REFERENCE.height
+
+		this.drawingSpeed = 2 * scaleX
+		this._verticalStep = 5 * scaleY
+	}
+
+	_scaleGraphPoint({ x, y }) {
+		const scaleX = this._displayWidth / GRAPH_REFERENCE.width
+		const scaleY = this._displayHeight / GRAPH_REFERENCE.height
+
+		return {
+			x: x * scaleX,
+			y: y * scaleY,
+		}
+	}
+
+	_getGraphStartPoint() {
+		return this._scaleGraphPoint(GRAPH_TEMPLATE[0])
+	}
+
+	_resetUserGraphPosition({ seedGraph = false } = {}) {
+		const start = this._getGraphStartPoint()
+		this.currentX = start.x
+		this.currentY = start.y
+		this.userGraph = seedGraph ? [{ x: start.x, y: start.y }] : []
 	}
 
 	resize() {
@@ -114,7 +160,7 @@ export default class Graph extends EventEmitter {
 		this.originalGraph = this._generateRandomGraph()
 
 		if (!this.isGameActive) {
-			this.currentY = this._displayHeight / 2
+			this._resetUserGraphPosition()
 		}
 	}
 
@@ -125,45 +171,9 @@ export default class Graph extends EventEmitter {
 
 	// Generate a random trading graph to follow
 	_generateRandomGraph() {
-		let graph = []
-		const maxChanges = 10 // Maximum number of direction changes
-		let changes = 0 // Track the number of direction changes
-		let lastY = this._displayHeight * 0.75 // Start 3/4 down the canvas
-		let lastX = 0 // Start 3/4 down the canvas
+		if (!this._displayWidth || !this._displayHeight) return []
 
-		for (let i = 0; i <= changes; i++) {
-			// Make sure Y stays within bounds (0 <= Y <= canvas height)
-			lastY = Math.max(5, Math.min(this._displayHeight - 10, lastY)) // Keep it within bounds
-
-			const x = lastX
-
-			graph.push({ x, y: lastY })
-
-			// Randomly change direction (but limit changes)
-			if (Math.random() < 0.1 && changes < maxChanges) {
-				changes++
-			}
-
-			lastX = x
-		}
-
-		graph = [
-			{ x: 0, y: this._displayHeight - 5 },
-			{ x: 10, y: 20 },
-			{ x: 15, y: 25 },
-			{ x: 20, y: 30 },
-			{ x: 30, y: 20 },
-			{ x: 35, y: 5 },
-			{ x: 40, y: 25 },
-			{ x: 50, y: 10 },
-			{ x: 55, y: 30 },
-			{ x: 60, y: 20 },
-			{ x: 70, y: 10 },
-			{ x: 75, y: 30 },
-			{ x: 85, y: 0 },
-		]
-
-		return graph
+		return GRAPH_TEMPLATE.map((point) => this._scaleGraphPoint(point))
 	}
 
 	_drawOriginalGraph() {
@@ -191,7 +201,10 @@ export default class Graph extends EventEmitter {
 	}
 
 	_drawGrid() {
-		for (let y = 0; y <= this._displayHeight; y += 5) {
+		const gridY = Math.max(5, Math.round(this._displayHeight / GRAPH_REFERENCE.height) * 5)
+		const gridX = Math.max(10, Math.round(this._displayWidth / GRAPH_REFERENCE.width) * 10)
+
+		for (let y = 0; y <= this._displayHeight; y += gridY) {
 			this.context.beginPath()
 			this.context.moveTo(0, y)
 			this.context.lineTo(this._displayWidth, y)
@@ -200,7 +213,7 @@ export default class Graph extends EventEmitter {
 			this.context.stroke()
 		}
 
-		for (let x = 0; x <= this._displayWidth; x += 10) {
+		for (let x = 0; x <= this._displayWidth; x += gridX) {
 			this.context.beginPath()
 			this.context.moveTo(x, 0)
 			this.context.lineTo(x, this._displayHeight)
@@ -272,7 +285,7 @@ export default class Graph extends EventEmitter {
 
 		this._joystickInterval = window.setInterval(() => {
 			if (!this.isGameActive) return
-			const step = 5 // How much the line moves vertically per arrow key press
+			const step = this._verticalStep ?? 5
 			if (this._joystickBottom) {
 				this.currentY = Math.max(0, this.currentY + step) // Move up
 				if (this.graphScore > 0) this.graphScore = 0

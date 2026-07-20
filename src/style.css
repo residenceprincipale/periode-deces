@@ -35,27 +35,32 @@ body {
 	height: 100% !important;
 }
 
-.computer-screen {
+.computer-screen-wallpaper,
+.computer-screen-ui {
 	position: relative;
-	width: 150px;
-	height: 83px;
-	background-color: rgb(34, 135, 174);
+	width: 300px;
+	height: 166px;
+	overflow: hidden;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+.computer-screen-wallpaper {
+	contain: strict;
+	pointer-events: none;
+}
+
+.computer-screen-ui {
+	background-color: transparent;
 	color: black;
 	font-family: system-ui, -apple-system, sans-serif;
-	font-size: 10px;
-	/* line-height: 10px; */
-	overflow: hidden;
-	transform: scale(2);
-	/* filter: blur(1px); */
+	font-size: 20px;
+	pointer-events: auto;
 }
 
 .wallpaper {
-	z-index: 0;
-	position: absolute;
 	width: 100%;
 	height: 100%;
-	top: 0;
-	left: 0;
 }
 
 .graph {
@@ -67,13 +72,18 @@ body {
 	z-index: 1;
 }
 
+.graph .notification,
+.graph .activity {
+	opacity: 0;
+	visibility: hidden;
+}
+
 .graph .notification {
 	top: 20%;
 	left: 10%;
 	position: absolute;
 	width: 30%;
 	height: 50%;
-	transform: scale(0);
 }
 
 .graph .activity {
@@ -82,13 +92,18 @@ body {
 	position: absolute;
 	width: 55%;
 	height: 80%;
-	transform: scale(0);
+}
+
+.graph .notification.is-visible,
+.graph .activity.is-visible {
+	opacity: 1;
+	visibility: visible;
 }
 
 .graph .activity canvas {
 	width: 100%;
-	height: 40px;
-	margin-top: -2px;
+	height: 80px;
+	margin-top: -4px;
 }
 
 .graph .activity .top {
@@ -99,7 +114,7 @@ body {
 .graph .activity .bottom {
 	width: 100%;
 	display: flex;
-	margin-top: -2px;
+	margin-top: -4px;
 }
 
 .graph .activity .bottom img {
@@ -108,11 +123,11 @@ body {
 
 .graph .activity .bottom .number {
 	background-color: green;
-	font-size: 10px;
+	font-size: 20px;
 	text-align: center;
 	width: 20%;
 	color: white;
-	padding-top: 2px;
+	padding-top: 4px;
 }
 
 .graph .notification img {

@@ -22,6 +22,7 @@ export default class Debug {
 
 			this.setPlugins()
 			this.setSaveControls()
+			this.setEventsFolderPlaceholder()
 			// this.setImportExportButtons()
 			this.setMoveEvent()
 			this.setResizeEvent()
@@ -92,6 +93,18 @@ export default class Debug {
 		this.ui.addButton({ title: '💾 Save' }).on('click', () => this.save())
 		this.ui.addBinding(this.server, 'state', { readonly: true, label: 'Server', interval: 100 })
 		this.ui.addBlade({ view: 'separator' })
+	}
+
+	setEventsFolderPlaceholder() {
+		this.eventsFolder = this.ui.addFolder({ title: 'Events', expanded: true })
+	}
+
+	setEventsFolder(events = []) {
+		if (!this.active || !events.length || !this.eventsFolder) return
+
+		events.forEach(({ title, start }) => {
+			this.eventsFolder.addButton({ title }).on('click', start)
+		})
 	}
 
 	setPlugins() {
