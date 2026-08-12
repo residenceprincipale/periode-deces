@@ -1,6 +1,5 @@
 import Experience from 'core/Experience.js'
 import { MeshBasicMaterial, PlaneGeometry, Mesh } from 'three'
-import addObjectDebug from '../utils/addObjectDebug'
 import Component from 'core/Component.js'
 
 export default class Desk extends Component {
@@ -13,6 +12,19 @@ export default class Desk extends Component {
 		this._createMaterial()
 		this._createMesh()
 		this._createPostIts()
+
+		this._createListeners()
+	}
+
+	_createListeners() {
+		const baseMousePosition = this.mouseObject.position.clone()
+		addEventListener('mousemove', (event) => {
+			const x = (event.clientX / this.experience.sizes.width) * 2 - 1
+			const y = (event.clientY / this.experience.sizes.height) * 2 - 1
+
+			this.mouseObject.position.x = baseMousePosition.x + x * 0.1
+			this.mouseObject.position.z = baseMousePosition.z + y * 0.1
+		})
 	}
 
 	_createMaterial() {
@@ -28,6 +40,9 @@ export default class Desk extends Component {
 				if (child.name === '_NAS') {
 					// child.geometry.attributes.uv = child.geometry.attributes.uv1.clone()
 					child.material = new MeshBasicMaterial({ color: 0x333333, side: 0 })
+				}
+				if (child.name === 'Souris') {
+					this.mouseObject = child
 				}
 			}
 		})
