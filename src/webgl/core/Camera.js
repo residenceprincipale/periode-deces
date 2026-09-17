@@ -1,8 +1,8 @@
 import Experience from './Experience.js'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { CameraHelper, PerspectiveCamera, Vector3, Group } from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { CameraHelper, PerspectiveCamera, Vector3, Group } from 'three/webgpu'
 import InputManager from 'utils/InputManager.js'
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
 import gsap from 'gsap'
 import settings from './Camera/settings.js'
 
@@ -28,10 +28,7 @@ export default class Camera {
 
 		this.setInstance()
 		if (this.options.currentCamera === 'controlsCamera') this.setControlsCamera()
-		// this.setControlsCamera()
 		if (this.options.currentCamera === 'fpsCamera') this.setFpsCamera()
-
-		if (this.debug.active) this.setDebug()
 
 		this.createCameraGroup();
 		this.setupIdleAnimation();
@@ -203,55 +200,50 @@ export default class Camera {
 	setDebug() {
 		this.debug.registerFile(settings, settings.file)
 
-		const debugFolder = this.debug.ui.addFolder({
-			title: 'Camera',
-			expanded: false,
-		})
+		const folder = this.debug.ui.addFolder('Camera')
 
-		debugFolder.addBinding(settings, 'fov', { min: 0, max: 180, step: 1 }).on('change', () => {
-			this.options.fov = settings.fov
-			this.sceneCamera.fov = settings.fov
+		folder.add(settings, 'fov', 0, 180, 1).onChange((value) => {
+			this.options.fov = value
+			this.sceneCamera.fov = value
 			this.sceneCamera.updateProjectionMatrix()
-			if (this.sceneCamera.cameraHelper) this.sceneCamera.cameraHelper.update()
+			this.sceneCamera.cameraHelper?.update()
 		})
 
-		debugFolder.addBinding(settings, 'frustum', { min: 0.1, max: 100, step: 0.1 }).on('change', () => {
-			this.options.frustum = settings.frustum
-			this.sceneCamera.near = settings.frustum.min
-			this.sceneCamera.far = settings.frustum.max
+		folder.add(settings.frustum, 'min', 0.1, 100, 0.1).name('near').onChange((value) => {
+			this.options.frustum.min = value
+			this.sceneCamera.near = value
 			this.sceneCamera.updateProjectionMatrix()
-			if (this.sceneCamera.cameraHelper) this.sceneCamera.cameraHelper.update()
+			this.sceneCamera.cameraHelper?.update()
 		})
 
-		debugFolder
-			.addBlade({
-				view: 'list',
-				label: 'currentCamera',
-				options: [
-					{ text: 'SceneCamera', value: 'sceneCamera' },
-					{ text: 'ControlsCamera', value: 'controlsCamera' },
-					{ text: 'FpsCamera', value: 'fpsCamera' },
-				],
-				value: this.instance.name,
-			})
-			.on('change', ({ value }) => {
-				const isSceneCamera = value === 'sceneCamera'
+		folder.add(settings.frustum, 'max', 0.1, 100, 0.1).name('far').onChange((value) => {
+			this.options.frustum.max = value
+			this.sceneCamera.far = value
+			this.sceneCamera.updateProjectionMatrix()
+			this.sceneCamera.cameraHelper?.update()
+		})
 
-				if (!isSceneCamera) {
-					this[`set${value.charAt(0).toUpperCase() + value.slice(1)}`]()
-					this.#setCameraDebugPositionAndTarget(this[value])
-				}
+		folder.add(settings.position, 'x').name('position.x')
+		folder.add(settings.position, 'y').name('position.y')
+		folder.add(settings.position, 'z').name('position.z')
+		folder.add(settings.target, 'x').name('target.x')
+		folder.add(settings.target, 'y').name('target.y')
+		folder.add(settings.target, 'z').name('target.z')
 
-				this.sceneCamera.cameraHelper.visible = !isSceneCamera
-				if (this.controlsCamera) this.controlsCamera.controls.enabled = value === 'controlsCamera'
-				this.instance = this[value]
-			})
+		folder.add(settings, 'currentCamera', ['sceneCamera', 'controlsCamera', 'fpsCamera']).onChange((value) => {
+			const isSceneCamera = value === 'sceneCamera'
 
-		debugFolder
-			.addButton({
-				title: 'Reset debug position',
-			})
-			.on('click', this.resetDebugPosition.bind(this))
+			if (!isSceneCamera) {
+				this[`set${value.charAt(0).toUpperCase() + value.slice(1)}`]()
+				this.#setCameraDebugPositionAndTarget(this[value])
+			}
+
+			if (this.sceneCamera.cameraHelper) this.sceneCamera.cameraHelper.visible = !isSceneCamera
+			if (this.controlsCamera) this.controlsCamera.controls.enabled = value === 'controlsCamera'
+			this.instance = this[value]
+		})
+
+		folder.add({ reset: () => this.resetDebugPosition() }, 'reset').name('Reset debug position')
 	}
 
 	dispose() {

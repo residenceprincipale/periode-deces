@@ -4,7 +4,7 @@ import Time from 'core/Time.js'
 import Camera from 'core/Camera.js'
 import Renderer from './Renderer.js'
 import SceneManager from 'core/SceneManager.js'
-import { Mesh, Scene } from 'three'
+import { Mesh, Scene } from 'three/webgpu'
 import InteractionManager from 'core/InteractionManager.js'
 import { SubtitlesManager } from '@/webgl/core/SubtitlesManager.js'
 
@@ -31,19 +31,17 @@ export default class Experience {
 		this.debug = new Debug()
 		this.sizes = new Sizes()
 		this.camera = new Camera()
-		this.interactionManager = new InteractionManager(this.camera.instance)
-		this.activeScene = new SceneManager()
-		this.renderer = new Renderer()
-		this.subtitlesManager = new SubtitlesManager()
-
-		// Resize event
-		this.sizes.on('resize', () => {
-			this.resize()
-		})
-
-		// Time tick event
 		this.time.on('tick', () => {
 			this.update()
+		})
+		this.interactionManager = new InteractionManager(this.camera.instance)
+		this.renderer = new Renderer()
+		this.subtitlesManager = new SubtitlesManager()
+		if (this.debug.active) this.camera.setDebug()
+		this.activeScene = new SceneManager()
+
+		this.sizes.on('resize', () => {
+			this.resize()
 		})
 	}
 
@@ -81,9 +79,11 @@ export default class Experience {
 			}
 		})
 
+		this.time.dispose()
 		this.camera.dispose()
+		this.renderer.instance.setAnimationLoop(null)
+		this.debug.inspector?.dispose?.()
 		this.renderer.instance.dispose()
-
-		if (this.debug.active) this.debug.ui.destroy()
+		if (this.debug.ui?.destroy) this.debug.ui.destroy()
 	}
 }

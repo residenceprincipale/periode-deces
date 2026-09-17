@@ -187,7 +187,7 @@ export default class Main {
 
 	update() {
 		if (this.fan) this.fan.update()
-		if (this.wallFan) this.wallFan.update()
+		if (this.wallFan?.update) this.wallFan.update()
 		if (this.computer) this.computer.update()
 	}
 }

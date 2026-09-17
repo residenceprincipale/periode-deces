@@ -1,93 +1,36 @@
 import addMaterialDebug from 'utils/addMaterialDebug.js'
 import useTransformControls from 'utils/useTransformControls.js'
 import { applyObjectSettings } from 'utils/transformSettings.js'
-import { FolderApi } from '@tweakpane/core'
-import { Object3D } from 'three'
-import * as THREE from 'three'
 
-const objectParams = {
-	visible: { type: 'boolean' },
-	castShadow: { type: 'boolean' },
-	receiveShadow: { type: 'boolean' },
-	intensity: { type: 'number', min: 0, max: 10, step: 0.01 },
-	color: { type: 'color', color: { type: 'float' } },
-	groundColor: { type: 'color', color: { type: 'float' } },
-	distance: { type: 'number', min: 0, max: 100, step: 0.01 },
-	decay: { type: 'number', min: 0, max: 10, step: 0.01 },
-	angle: { type: 'number', min: 0, max: Math.PI / 2, step: 0.01 },
-	penumbra: { type: 'number', min: 0, max: 1, step: 0.01 },
-}
-
-/**
- * Adds debugging functionality to a given 3D object within a folder interface.
- * @param {FolderApi} folder - Tweakpane folder
- * @param {Object3D} object - 3D mesh
- * @param {{ title?: string, expanded?: boolean }} options - Options
- * @returns {FolderApi} - Tweakpane folder
- */
 export default function addObjectDebug(folder, object, options = {}) {
-	const title = options.title ? options.title : object.name ? object.name : object.uuid.slice(0, 8)
-	const settings = options.settings
+	if (!folder?.addFolder) return
 
+	const title = options.title || object.name || object.uuid.slice(0, 8)
+	const settings = options.settings
+	const debugFolder = folder.addFolder(title)
+
+	if (options.expanded === false) debugFolder.close()
 	if (settings) applyObjectSettings(object, settings)
 
-	const debugFolder = folder.addFolder({
-		title,
-		expanded: options.expanded || false,
-	})
+	new useTransformControls(object, debugFolder, undefined, settings)
 
-	const meshKeys = Object.keys(objectParams)
-
-	meshKeys.forEach((key) => {
-		const keyValue = object[key]
-		const meshOption = objectParams[key]
-		if (keyValue === undefined) return
-
-		const bindingTarget = settings ?? object
-		if (settings && settings[key] === undefined) settings[key] = object[key]
-
-		debugFolder
-			.addBinding(bindingTarget, key, {
-				...meshOption,
-				label: key,
-			})
-			.on('change', () => {
-				if (settings) object[key] = settings[key]
-				object.helper?.update()
-			})
-	})
-
-	// display helper
-	const helperName = object.constructor.name + 'Helper'
-	if (helperName in THREE) {
-		const helperObject = new THREE[helperName](object)
-		helperObject.devObject = true
-		debugFolder
-			.addBinding({ helperVisible: false }, 'helperVisible', {
-				label: 'helper',
-			})
-			.on('change', ({ value }) => {
-				if (object.helper) {
-					object.helper.visible = value
-				} else {
-					object.helper = helperObject
-					object.helper.visible = value
-					object.parent.add(object.helper)
-				}
-			})
-	}
-
-	const controls = new useTransformControls(object, debugFolder, undefined, settings)
 	if (object.target) {
-		const targetControls = new useTransformControls(object.target, debugFolder, 'transform control target')
+		new useTransformControls(object.target, debugFolder, 'transform control target')
 	}
 
+	const materials = new Set()
 	object.traverse((child) => {
-		if (child.material) {
-			addMaterialDebug(debugFolder, child.material, {
-				title: child.material.name || `${child.name}Material(${child.material.uuid.slice(0, 8)})`,
-			})
-		}
+		const material = child.material
+		if (!material) return
+		const list = Array.isArray(material) ? material : [material]
+		list.forEach((item) => materials.add(item))
+	})
+
+	materials.forEach((material) => {
+		addMaterialDebug(debugFolder, material, {
+			title: material.name || `${material.uuid.slice(0, 8)}`,
+			uniforms: material.userData.debugUniforms,
+		})
 	})
 
 	return debugFolder

@@ -1,8 +1,8 @@
 import EventEmitter from 'core/EventEmitter.js'
-import { AudioLoader, CubeTexture, CubeTextureLoader, Object3D, Texture, TextureLoader } from 'three'
+import { AudioLoader, CubeTexture, CubeTextureLoader, Object3D, Texture, TextureLoader } from 'three/webgpu'
 import Experience from 'core/Experience.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 
 export default class Resources extends EventEmitter {
 	constructor(sources) {

@@ -1,7 +1,7 @@
-import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer'
+import { CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js'
 import { gsap } from 'gsap'
 import Experience from 'core/Experience.js'
-import { Object3D, Vector3 } from 'three'
+import { Object3D, Vector3 } from 'three/webgpu'
 
 export default class Bubble {
 	/**

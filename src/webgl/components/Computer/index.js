@@ -1,8 +1,8 @@
 import addObjectDebug from '@/webgl/utils/addObjectDebug'
 import Component from 'core/Component.js'
 import Experience from 'core/Experience.js'
-import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three'
-import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
+import { BoxGeometry, Mesh, MeshBasicMaterial, Vector3 } from 'three/webgpu'
+import { CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js'
 import Graph from './activities/Graph'
 
 // Native screen is 300×166 (2× the old 150×83 layout). Halve CSS3D scale to keep the same world size.

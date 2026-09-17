@@ -1,5 +1,5 @@
 import Experience from 'core/Experience.js'
-import { MeshBasicMaterial } from 'three'
+import { MeshBasicMaterial } from 'three/webgpu'
 import Component from 'core/Component.js'
 import addObjectDebug from 'utils/addObjectDebug.js'
 import { applyObjectSettings } from 'utils/transformSettings.js'
@@ -21,18 +21,14 @@ export default class Background extends Component {
 	_createMaterial() {
 		const texture = this.scene.resources.items.bakeBackgroundTexture
 		texture.flipY = false
+		texture.channel = 1
 		this._material = new MeshBasicMaterial({ map: texture })
 	}
 
 	_createMesh() {
 		this.mesh = this.scene.resources.items.backgroundModel.scene.clone()
 		this.mesh.traverse((child) => {
-			if (child.isMesh) {
-				child.material = this._material
-				if (child.name === 'Cork001') {
-					child.geometry.attributes.uv = child.geometry.attributes.uv1.clone()
-				}
-			}
+			if (child.isMesh) child.material = this._material
 		})
 		this.mesh.name = 'background'
 		this.add(this.mesh)

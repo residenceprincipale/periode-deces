@@ -28,17 +28,14 @@ export default class SceneManager {
 	}
 
 	setDebug() {
-		this.debug.ui
-			.addBlade({
-				view: 'list',
-				label: 'scene',
-				options: Object.keys(this.scenes).map((key) => {
-					return { text: key, value: key }
-				}),
-				value: this.sceneName,
-			})
-			.on('change', ({ value }) => {
-				window.location.href = `?scene=${value}#debug`
-			})
+		const params = { scene: this.sceneName }
+		const scenes = {}
+		Object.keys(this.scenes).forEach((key) => {
+			scenes[key] = key
+		})
+
+		this.debug.ui.add(params, 'scene', scenes).onChange((value) => {
+			window.location.href = `?scene=${value}#debug`
+		})
 	}
 }

@@ -1,4 +1,4 @@
-import { AnimationMixer, LoopOnce, LoopPingPong, LoopRepeat, AnimationClip, Object3D, AnimationAction } from 'three'
+import { AnimationMixer, LoopOnce, LoopPingPong, LoopRepeat } from 'three/webgpu'
 
 /**
  * AnimationController class
@@ -125,53 +125,21 @@ export default class AnimationController {
 	 * @param {Object} debugFolder - The debug folder to add the controls to.
 	 */
 	setDebug(debugFolder) {
-		const animationDebugFolder = debugFolder.addFolder({ title: 'AnimationController' })
-		let animationControls = {}
+		const folder = debugFolder.addFolder('AnimationController')
 
-		Object.keys(this.actions).forEach((action) => {
-			animationDebugFolder.addButton({ title: action }).on('click', () => {
-				this.fadeAnimation(action, { loop: true })
-				removeAnimationControls()
-				animationControls = generateAnimationControls()
-			})
+		Object.keys(this.actions).forEach((name) => {
+			folder.add({ [name]: () => this.fadeAnimation(name, { loop: true }) }, name)
 		})
-		const generateAnimationControls = () => {
-			return {
-				pause: animationDebugFolder.addBinding(this.current, 'paused'),
-				time: animationDebugFolder.addBinding(this.current, 'time', {
-					min: 0,
-					max: this.current.getClip().duration,
-					step: 0.01,
-				}),
-				timeScale: animationDebugFolder.addBinding(this.current, 'timeScale', { min: -1, max: 2, step: 0.01 }),
-				loop: animationDebugFolder
-					.addBlade({
-						view: 'list',
-						label: 'Loop',
-						value: this.current.loop,
-						options: [
-							{ text: 'Loop', value: LoopRepeat },
-							{ text: 'Once', value: LoopOnce },
-							{ text: 'PingPong', value: LoopPingPong },
-						],
-					})
-					.on('change', ({ value }) => {
-						this.current.enabled = true
-						this.current.loop = value
-					}),
-			}
-		}
-		if (this.current) animationControls = generateAnimationControls()
 
-		const removeAnimationControls = () => {
-			Object.keys(animationControls).forEach((control) => {
-				animationControls[control].dispose()
-			})
-		}
+		if (!this.current) return
 
-		setInterval(() => {
-			animationDebugFolder.refresh()
-		}, 100)
+		folder.add(this.current, 'paused')
+		folder.add(this.current, 'time', 0, this.current.getClip().duration, 0.01).listen()
+		folder.add(this.current, 'timeScale', -1, 2, 0.01)
+		folder.add(this.current, 'loop', { Loop: LoopRepeat, Once: LoopOnce, PingPong: LoopPingPong }).onChange((value) => {
+			this.current.enabled = true
+			this.current.loop = value
+		})
 	}
 
 	#pauseAllActions() {

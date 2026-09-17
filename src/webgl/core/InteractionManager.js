@@ -1,4 +1,4 @@
-import { Raycaster, Vector2 } from 'three'
+import { Raycaster, Vector2 } from 'three/webgpu'
 import Experience from 'core/Experience.js'
 
 //TODO : drag

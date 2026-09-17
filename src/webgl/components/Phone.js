@@ -1,6 +1,6 @@
 import Experience from 'core/Experience.js'
 import { gsap } from 'gsap'
-import { MeshBasicMaterial, Vector2 } from 'three'
+import { MeshBasicMaterial, Vector2 } from 'three/webgpu'
 import Component from 'core/Component.js'
 import Bubble from './Bubble'
 import { isContinueKey } from '@/webgl/utils/keyboardControls.js'

@@ -1,30 +1,61 @@
-import { defineConfig, loadEnv } from 'vite'
-import glslify from 'vite-plugin-glslify'
-import path from 'path'
+import { defineConfig } from 'vite'
+import fs from 'node:fs'
+import path from 'node:path'
+import util from 'node:util'
+import { fileURLToPath } from 'node:url'
 
-export default defineConfig(({ mode }) => {
-	const env = loadEnv(mode, path.resolve(__dirname), '')
+const projectRoot = path.dirname(fileURLToPath(import.meta.url))
+const settingsRoot = path.resolve(projectRoot, 'src/webgl')
 
+function debugSavePlugin() {
 	return {
-		root: 'src',
-		publicDir: '../public',
-		build: {
-			outDir: '../dist',
+		name: 'debug-save',
+		configureServer(server) {
+			server.middlewares.use('/debug/save', (req, res, next) => {
+				if (req.method !== 'POST') return next()
+
+				const chunks = []
+				req.on('data', (chunk) => chunks.push(chunk))
+				req.on('end', () => {
+					try {
+						const { data, file } = JSON.parse(Buffer.concat(chunks).toString())
+						const filePath = path.resolve(projectRoot, file)
+
+						if (!filePath.startsWith(settingsRoot) || !filePath.endsWith('settings.js')) {
+							res.statusCode = 403
+							res.end('forbidden')
+							return
+						}
+
+						fs.writeFileSync(filePath, 'export default ' + util.inspect(data, false, 7, false) + ';\n')
+						res.statusCode = 200
+						res.end('ok')
+					} catch (error) {
+						res.statusCode = 400
+						res.end(String(error))
+					}
+				})
+			})
 		},
-		define: {
-			'import.meta.env.DEV_SERVER_IP': JSON.stringify(env.DEV_SERVER_IP ?? 'localhost'),
-			'import.meta.env.DEBUGGER_SERVER_PORT': JSON.stringify(env.DEBUGGER_SERVER_PORT ?? '3999'),
-		},
-		resolve: {
-			alias: {
-				'@': path.resolve(__dirname, 'src'),
-				webgl: path.resolve(__dirname, 'src/webgl'),
-				utils: path.resolve(__dirname, 'src/webgl/utils'),
-				scenes: path.resolve(__dirname, 'src/webgl/scenes'),
-				components: path.resolve(__dirname, 'src/webgl/components'),
-				core: path.resolve(__dirname, 'src/webgl/core'),
-			},
-		},
-		plugins: [...glslify()],
 	}
+}
+
+export default defineConfig({
+	root: 'src',
+	publicDir: '../public',
+	build: {
+		outDir: '../dist',
+	},
+	resolve: {
+		alias: [
+			{ find: /^three$/, replacement: 'three/webgpu' },
+			{ find: '@', replacement: path.resolve(projectRoot, 'src') },
+			{ find: 'webgl', replacement: path.resolve(projectRoot, 'src/webgl') },
+			{ find: 'utils', replacement: path.resolve(projectRoot, 'src/webgl/utils') },
+			{ find: 'scenes', replacement: path.resolve(projectRoot, 'src/webgl/scenes') },
+			{ find: 'components', replacement: path.resolve(projectRoot, 'src/webgl/components') },
+			{ find: 'core', replacement: path.resolve(projectRoot, 'src/webgl/core') },
+		],
+	},
+	plugins: [debugSavePlugin()],
 })

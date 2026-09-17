@@ -1,10 +1,8 @@
 export default {
-	file: './src/webgl/components/WallFan/settings.js',
-	visible: true,
-	position: { x: -4.401322172538345, y: 3.7016615232929984, z: -9.97 },
+  file: './src/webgl/components/WallFan/settings.js',
+  position: { x: -4.471268979084236, y: 3.6419569849676385, z: -9.97 },
   rotation: { x: 0, y: 1.53, z: 0 },
   scale: { x: 1, y: 1, z: 1 },
-  animation: { fanPaleDuration: 0.1, fanSwingAngle: 0.4, fanSwingDuration: 3 },
   wind: {
     amplitude: 0.22,
     frequency: 21,

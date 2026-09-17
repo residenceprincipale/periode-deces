@@ -1,22 +1,18 @@
 import Experience from 'core/Experience.js'
-import fragmentShader from './fragmentShader.frag'
-import vertexShader from './vertexShader.vert'
-import { BoxGeometry, Mesh, ShaderMaterial, Vector3 } from 'three'
+import { BoxGeometry, Mesh, MeshBasicNodeMaterial, Vector3 } from 'three/webgpu'
+import { uniform, uv, vec4 } from 'three/tsl'
 import addObjectDebug from 'utils/addObjectDebug.js'
-import InteractionManager from 'core/InteractionManager.js'
 
 export default class Cube {
 	constructor(_position = new Vector3(0, 0, 0)) {
 		this.experience = new Experience()
 		this.scene = this.experience.scene
 		this.debug = this.experience.debug
-
 		this.position = _position
 
 		this.setGeometry()
 		this.setMaterial()
 		this.setMesh()
-
 		this.setInteraction()
 	}
 
@@ -25,13 +21,10 @@ export default class Cube {
 	}
 
 	setMaterial() {
-		this.material = new ShaderMaterial({
-			fragmentShader,
-			vertexShader,
-			uniforms: {
-				uOpacity: { value: 1 },
-			},
-		})
+		const uOpacity = uniform(1)
+		this.material = new MeshBasicNodeMaterial({ transparent: true })
+		this.material.colorNode = vec4(uv(), 1, uOpacity)
+		this.material.userData.debugUniforms = { uOpacity }
 	}
 
 	setMesh() {

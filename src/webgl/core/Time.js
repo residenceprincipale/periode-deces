@@ -1,25 +1,26 @@
 import EventEmitter from 'core/EventEmitter.js'
+import { Timer } from 'three/webgpu'
 
 export default class Time extends EventEmitter {
 	constructor() {
 		super()
 
-		// Setup
-		this.start = performance.now()
-		this.current = this.start
+		this.timer = new Timer()
+		this.timer.connect(document)
+
+		this.start = 0
 		this.elapsed = 0
 		this.delta = 16
-
-		requestAnimationFrame(this.tick.bind(this))
 	}
 
-	tick(currentTime) {
-		this.delta = currentTime - this.current
-		this.current = currentTime
-		this.elapsed = this.current - this.start
-
+	update(timestamp) {
+		this.timer.update(timestamp)
+		this.delta = this.timer.getDelta() * 1000
+		this.elapsed = this.timer.getElapsed() * 1000
 		this.trigger('tick')
+	}
 
-		requestAnimationFrame(this.tick.bind(this))
+	dispose() {
+		this.timer.disconnect()
 	}
 }

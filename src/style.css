@@ -35,6 +35,13 @@ body {
 	height: 100% !important;
 }
 
+.three-inspector {
+	--font-family: Arial, Helvetica, sans-serif !important;
+	--font-mono: Arial, Helvetica, sans-serif !important;
+	font-family: Arial, Helvetica, sans-serif !important;
+	-webkit-font-smoothing: antialiased;
+}
+
 .computer-screen-wallpaper,
 .computer-screen-ui {
 	position: relative;

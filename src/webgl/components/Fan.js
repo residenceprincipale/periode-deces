@@ -1,6 +1,5 @@
 import Experience from 'core/Experience.js'
-import { MeshBasicMaterial } from 'three'
-import { lerp } from 'three/src/math/MathUtils.js'
+import { MathUtils, MeshBasicMaterial } from 'three/webgpu'
 import Component from '../core/Component'
 import { gsap } from 'gsap'
 
@@ -121,7 +120,7 @@ export default class Fan extends Component {
 	}
 
 	update() {
-		this.helix.rotation.x = lerp(this.helix.rotation.x, -this._targetRotation, 0.01 * this.experience.time.delta)
+		this.helix.rotation.x = MathUtils.lerp(this.helix.rotation.x, -this._targetRotation, 0.01 * this.experience.time.delta)
 	}
 
 	dispose() {

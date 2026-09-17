@@ -1,5 +1,5 @@
 import Experience from 'core/Experience.js'
-import { MeshBasicMaterial, PlaneGeometry, Mesh } from 'three'
+import { MeshBasicMaterial, PlaneGeometry, Mesh } from 'three/webgpu'
 import addObjectDebug from '../utils/addObjectDebug'
 import Component from 'core/Component.js'
 
