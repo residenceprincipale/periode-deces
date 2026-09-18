@@ -4,5 +4,6 @@ export default {
   frustum: { min: 1, max: 100 },
   position: { x: 0, y: 2.6, z: 4 },
   target: { x: 0, y: 1.9, z: 0 },
-  currentCamera: 'sceneCamera'
+  currentCamera: 'sceneCamera',
+  cameraHelper: true
 };

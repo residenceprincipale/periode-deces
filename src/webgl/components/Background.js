@@ -21,12 +21,12 @@ export default class Background extends Component {
 	_createMaterial() {
 		const texture = this.scene.resources.items.bakeBackgroundTexture
 		texture.flipY = false
-		texture.channel = 1
+		texture.channel = 0
 		this._material = new MeshBasicMaterial({ map: texture })
 	}
 
 	_createMesh() {
-		this.mesh = this.scene.resources.items.backgroundModel.scene.clone()
+		this.mesh = this.scene.resources.items.backgroundModel.scene
 		this.mesh.traverse((child) => {
 			if (child.isMesh) child.material = this._material
 		})

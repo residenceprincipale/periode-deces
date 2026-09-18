@@ -34,6 +34,20 @@ export default class Camera {
 		this.setupIdleAnimation();
 	}
 
+	#ensureCameraHelper() {
+		if (!this.sceneCamera.cameraHelper) {
+			this.sceneCamera.cameraHelper = new CameraHelper(this.sceneCamera)
+			this.sceneCamera.cameraHelper.name = 'cameraHelper'
+			this.scene.add(this.sceneCamera.cameraHelper)
+		}
+		this.#setCameraHelperVisible()
+	}
+
+	#setCameraHelperVisible() {
+		if (!this.sceneCamera.cameraHelper) return
+		this.sceneCamera.cameraHelper.visible = settings.cameraHelper && settings.currentCamera !== 'sceneCamera'
+	}
+
 	#setCameraDebugPositionAndTarget(camera) {
 		const debugCameraPosition = JSON.parse(sessionStorage.getItem('debugCameraPosition'))
 		const debugCameraTarget = JSON.parse(sessionStorage.getItem('debugCameraTarget'))
@@ -107,12 +121,7 @@ export default class Camera {
 
 		this.#setCameraDebugPositionAndTarget(this.controlsCamera)
 
-		//Helper
-		if (!this.sceneCamera.cameraHelper) {
-			this.sceneCamera.cameraHelper = new CameraHelper(this.sceneCamera)
-			this.sceneCamera.cameraHelper.name = 'cameraHelper'
-			this.scene.add(this.sceneCamera.cameraHelper)
-		}
+		this.#ensureCameraHelper()
 
 		this.instance = this.controlsCamera
 	}
@@ -173,12 +182,7 @@ export default class Camera {
 			sessionStorage.setItem('debugCameraTarget', JSON.stringify(target))
 		})
 
-		//Helper
-		if (!this.sceneCamera.cameraHelper) {
-			this.sceneCamera.cameraHelper = new CameraHelper(this.sceneCamera)
-			this.sceneCamera.cameraHelper.name = 'cameraHelper'
-			this.scene.add(this.sceneCamera.cameraHelper)
-		}
+		this.#ensureCameraHelper()
 
 		this.instance = this.fpsCamera
 	}
@@ -238,10 +242,12 @@ export default class Camera {
 				this.#setCameraDebugPositionAndTarget(this[value])
 			}
 
-			if (this.sceneCamera.cameraHelper) this.sceneCamera.cameraHelper.visible = !isSceneCamera
+			this.#setCameraHelperVisible()
 			if (this.controlsCamera) this.controlsCamera.controls.enabled = value === 'controlsCamera'
 			this.instance = this[value]
 		})
+
+		folder.add(settings, 'cameraHelper').name('camera helper').onChange(() => this.#setCameraHelperVisible())
 
 		folder.add({ reset: () => this.resetDebugPosition() }, 'reset').name('Reset debug position')
 	}

@@ -9,9 +9,8 @@
 	{
 		"name": "bakeBackgroundTexture",
 		"type": "texture",
-		"path": "textures/bake-background-2.png",
-		"colorSpace": "srgb",
-		"flipY": false
+		"path": "textures/bake-background-3.png",
+		"colorSpace": "srgb"
 	},
 	{
 		"name": "postItWolfTexture",
@@ -55,7 +54,7 @@
 	{
 		"name": "backgroundModel",
 		"type": "gltf",
-		"path": "models/background-2.glb"
+		"path": "models/background-3.glb"
 	},
 	{
 		"name": "phoneModel",
